@@ -1,0 +1,362 @@
+-- Nếu đã có database thì xóa rồi tạo mới
+DROP DATABASE IF EXISTS DBTruyen;
+CREATE DATABASE DBTruyen CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE DBTruyen;
+
+-- Bảng Người dùng
+CREATE TABLE NguoiDung (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    Email VARCHAR(255) UNIQUE NOT NULL,
+    MatKhau VARCHAR(255) NOT NULL,
+    HoTen VARCHAR(255) NOT NULL,
+    SoDienThoai VARCHAR(20),
+    AnhDaiDien LONGTEXT,
+    VaiTro VARCHAR(20) DEFAULT 'USER',
+    TrangThai BOOLEAN DEFAULT TRUE,
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    NgayCapNhat DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    TokenQuenMatKhau VARCHAR(255),
+    HetHanToken DATETIME,
+    TrangThaiVIP BOOLEAN DEFAULT FALSE,
+    NgayDangKyVIP DATETIME NULL,
+    NgayHetHanVIP DATETIME NULL,
+    CHECK (VaiTro IN ('ADMIN', 'USER'))
+);
+
+-- Bảng Tác giả
+CREATE TABLE TacGia (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TenTacGia VARCHAR(255) NOT NULL,
+    MoTa LONGTEXT,
+    AnhDaiDien LONGTEXT,
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+SELECT * FROM dbtruyen.NguoiDung;
+
+-- Bảng Thể loại
+CREATE TABLE TheLoai (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TenTheLoai VARCHAR(255) NOT NULL,
+    MoTa LONGTEXT,
+    ThuTu INT DEFAULT 0,
+    TrangThai BOOLEAN DEFAULT TRUE,
+    MauSac VARCHAR(20)
+);
+
+-- Bảng Truyện
+CREATE TABLE Truyen (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TenTruyen VARCHAR(500) NOT NULL,
+    MoTa LONGTEXT,
+    AnhBia LONGTEXT,
+    TacGiaID INT,
+    TrangThai VARCHAR(50) DEFAULT 'DANG_TIEN_HANH',
+    ChiDanhChoVIP BOOLEAN DEFAULT FALSE,
+    NoiBat BOOLEAN DEFAULT FALSE,
+    TruyenMoi BOOLEAN DEFAULT FALSE,
+    LuotXem INT DEFAULT 0,
+    DiemDanhGia FLOAT DEFAULT 0,
+    SoLuongDanhGia INT DEFAULT 0,
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    NgayCapNhat DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    NguoiTaoID INT,
+    CHECK (TrangThai IN ('DANG_TIEN_HANH', 'HOAN_THANH', 'TAM_DUNG', 'DA_XOA')),
+    FOREIGN KEY (TacGiaID) REFERENCES TacGia(ID),
+    FOREIGN KEY (NguoiTaoID) REFERENCES NguoiDung(ID)
+);
+
+-- Bảng liên kết Truyện - Thể loại (Many-to-Many)
+CREATE TABLE TruyenTheLoai (
+    TruyenID INT,
+    TheLoaiID INT,
+    PRIMARY KEY (TruyenID, TheLoaiID),
+    FOREIGN KEY (TruyenID) REFERENCES Truyen(ID) ON DELETE CASCADE,
+    FOREIGN KEY (TheLoaiID) REFERENCES TheLoai(ID) ON DELETE CASCADE
+);
+
+-- Bảng Chương
+CREATE TABLE Chuong (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TruyenID INT,
+    TenChuong LONGTEXT NOT NULL,
+    NoiDung LONGTEXT NOT NULL,
+    SoChuong INT NOT NULL,
+    ChiDanhChoVIP BOOLEAN DEFAULT FALSE,
+    LuotXem INT DEFAULT 0,
+    TrangThai VARCHAR(50) DEFAULT 'CONG_KHAI',
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    NgayCapNhat DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    NgayDangLich DATETIME NULL,
+    CHECK (TrangThai IN ('CONG_KHAI', 'AN', 'NHAP', 'LICH_DANG')),
+    FOREIGN KEY (TruyenID) REFERENCES Truyen(ID) ON DELETE CASCADE
+);
+
+-- Bảng Tài khoản VIP
+CREATE TABLE TaiKhoanVIP (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    NguoiDungID INT,
+    NgayBatDau DATETIME NOT NULL,
+    NgayKetThuc DATETIME NOT NULL,
+    LoaiVIP VARCHAR(50) DEFAULT 'THANG',
+    GiaVIP DECIMAL(18,2),
+    TrangThai BOOLEAN DEFAULT TRUE,
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CHECK (LoaiVIP IN ('THANG', 'NAM', 'VINH_VIEN')),
+    FOREIGN KEY (NguoiDungID) REFERENCES NguoiDung(ID) ON DELETE CASCADE
+);
+
+-- Bảng Bình luận
+CREATE TABLE BinhLuan (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    NguoiDungID INT,
+    TruyenID INT,
+    ChuongID INT NULL,
+    NoiDung LONGTEXT NOT NULL,
+    TrangThai BOOLEAN DEFAULT TRUE,
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    BinhLuanChaID INT NULL,
+    FOREIGN KEY (NguoiDungID) REFERENCES NguoiDung(ID) ON DELETE NO ACTION,
+    FOREIGN KEY (TruyenID) REFERENCES Truyen(ID) ON DELETE CASCADE,
+    FOREIGN KEY (ChuongID) REFERENCES Chuong(ID) ON DELETE NO ACTION,
+    FOREIGN KEY (BinhLuanChaID) REFERENCES BinhLuan(ID) ON DELETE NO ACTION
+);
+
+-- Bảng Tủ truyện
+CREATE TABLE TuTruyen (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    NguoiDungID INT,
+    TruyenID INT,
+    NgayLuu DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY (NguoiDungID, TruyenID),
+    FOREIGN KEY (NguoiDungID) REFERENCES NguoiDung(ID) ON DELETE CASCADE,
+    FOREIGN KEY (TruyenID) REFERENCES Truyen(ID) ON DELETE NO ACTION
+);
+
+-- Bảng Lịch sử đọc
+CREATE TABLE LichSuDoc (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    NguoiDungID INT,
+    TruyenID INT,
+    ChuongID INT,
+    NgayDoc DATETIME DEFAULT CURRENT_TIMESTAMP,
+    SoLanDoc INT DEFAULT 1,
+    FOREIGN KEY (NguoiDungID) REFERENCES NguoiDung(ID) ON DELETE CASCADE,
+    FOREIGN KEY (TruyenID) REFERENCES Truyen(ID) ON DELETE NO ACTION,
+    FOREIGN KEY (ChuongID) REFERENCES Chuong(ID) ON DELETE NO ACTION
+);
+
+-- Bảng Đánh giá
+CREATE TABLE DanhGia (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    NguoiDungID INT,
+    TruyenID INT,
+    DiemSo INT CHECK (DiemSo >= 1 AND DiemSo <= 5),
+    NhanXet LONGTEXT,
+    NgayDanhGia DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY (NguoiDungID, TruyenID),
+    FOREIGN KEY (NguoiDungID) REFERENCES NguoiDung(ID) ON DELETE CASCADE,
+    FOREIGN KEY (TruyenID) REFERENCES Truyen(ID) ON DELETE NO ACTION
+);
+
+-- Bảng Thống kê
+CREATE TABLE ThongKe (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TruyenID INT,
+    NgayThongKe DATE NOT NULL,
+    LuotXem INT DEFAULT 0,
+    LuotXemChuong INT DEFAULT 0,
+    SoBinhLuan INT DEFAULT 0,
+    SoDanhGia INT DEFAULT 0,
+    UNIQUE KEY (TruyenID, NgayThongKe),
+    FOREIGN KEY (TruyenID) REFERENCES Truyen(ID) ON DELETE NO ACTION
+);
+
+-- Bảng Quảng cáo
+CREATE TABLE QuangCao (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TieuDe VARCHAR(255) NOT NULL,
+    NoiDung LONGTEXT,
+    AnhQuangCao VARCHAR(500),
+    LinkQuangCao VARCHAR(500),
+    ViTri VARCHAR(100),
+    NgayBatDau DATETIME NOT NULL,
+    NgayKetThuc DATETIME NOT NULL,
+    TrangThai BOOLEAN DEFAULT TRUE,
+    ThuTu INT DEFAULT 0,
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CHECK (ViTri IN ('HEADER', 'SIDEBAR', 'FOOTER', 'GIUA_CHUONG', 'POPUP'))
+);
+
+-- Bảng Thông báo
+CREATE TABLE ThongBao (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    NguoiDungID INT,
+    TieuDe VARCHAR(255) NOT NULL,
+    NoiDung LONGTEXT NOT NULL,
+    LoaiThongBao VARCHAR(50),
+    DaDoc BOOLEAN DEFAULT FALSE,
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    LinkChuyenHuong LONGTEXT NULL,
+    CHECK (LoaiThongBao IN ('CHUONG_MOI', 'BINH_LUAN', 'VIP', 'HE_THONG')),
+    FOREIGN KEY (NguoiDungID) REFERENCES NguoiDung(ID) ON DELETE CASCADE
+);
+
+-- Bảng Cấu hình hệ thống
+CREATE TABLE CauHinh (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TenCauHinh VARCHAR(255) NOT NULL UNIQUE,
+    GiaTri LONGTEXT,
+    MoTa LONGTEXT,
+    NgayCapNhat DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Bảng Gói VIP
+CREATE TABLE GoiVIP (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    TenGoi VARCHAR(255) NOT NULL,
+    MoTa LONGTEXT,
+    SoThang INT NOT NULL,
+    Gia DECIMAL(18,2) NOT NULL,
+    GiaGoc DECIMAL(18,2) NULL,
+    PhanTramGiamGia INT DEFAULT 0,
+    MauSac VARCHAR(50) DEFAULT '#ffd700',
+    Icon VARCHAR(100) DEFAULT 'fas fa-crown',
+    TrangThai BOOLEAN DEFAULT TRUE,
+    ThuTu INT DEFAULT 0,
+    NoiBat BOOLEAN DEFAULT FALSE,
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    NgayCapNhat DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Cập nhật trạng thái VIP cho người dùng ID=1 (ví dụ)
+
+-- Bạn có thể viết thủ tục lưu trữ hoặc script bên ứng dụng để cập nhật.
+-- MySQL không hỗ trợ BEGIN TRY...CATCH như SQL Server.
+-- Ví dụ đơn giản:
+UPDATE NguoiDung nd
+JOIN TaiKhoanVIP vip ON nd.ID = vip.NguoiDungID
+SET nd.TrangThaiVIP = TRUE,
+    nd.NgayDangKyVIP = vip.NgayBatDau,
+    nd.NgayHetHanVIP = vip.NgayKetThuc,
+    nd.NgayCapNhat = NOW()
+WHERE vip.TrangThai = TRUE AND vip.NgayKetThuc > NOW()
+AND nd.ID = 1;
+
+select from NguoiDung
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS UpdateVIP30Nam$$
+CREATE PROCEDURE UpdateVIP30Nam()
+BEGIN
+    DECLARE v_exists INT DEFAULT 0;
+    DECLARE v_GoiVIPID INT;
+    DECLARE v_GiaVIP DECIMAL(18,2);
+    DECLARE v_NgayBatDau DATETIME;
+    DECLARE v_NgayKetThuc DATETIME;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'Lỗi khi cập nhật VIP' AS Message;
+    END;
+
+    -- Kiểm tra tồn tại người dùng ID=1
+    SELECT COUNT(*) INTO v_exists FROM NguoiDung WHERE ID = 1;
+
+    IF v_exists = 1 THEN
+        SET v_NgayBatDau = NOW();
+        SET v_NgayKetThuc = DATE_ADD(v_NgayBatDau, INTERVAL 30 YEAR);
+
+        -- Lấy ID và giá của gói VIP 30 năm
+        SELECT ID, Gia INTO v_GoiVIPID, v_GiaVIP FROM GoiVIP WHERE TenGoi = 'VIP 30 Năm' LIMIT 1;
+
+        START TRANSACTION;
+
+        -- Cập nhật bảng NguoiDung
+        UPDATE NguoiDung
+        SET TrangThaiVIP = 1,
+            NgayDangKyVIP = v_NgayBatDau,
+            NgayHetHanVIP = v_NgayKetThuc,
+            NgayCapNhat = NOW()
+        WHERE ID = 1;
+
+        -- Thêm bản ghi vào bảng TaiKhoanVIP
+        INSERT INTO TaiKhoanVIP (NguoiDungID, NgayBatDau, NgayKetThuc, LoaiVIP, GiaVIP, TrangThai, NgayTao)
+        VALUES (1, v_NgayBatDau, v_NgayKetThuc, 'NAM', v_GiaVIP, 1, NOW());
+
+        -- Thêm thông báo cho người dùng
+        INSERT INTO ThongBao (NguoiDungID, TieuDe, NoiDung, LoaiThongBao, DaDoc, NgayTao, LinkChuyenHuong)
+        VALUES (
+            1,
+            '🎉 Chúc mừng! Bạn đã được nâng cấp VIP 30 năm!',
+            CONCAT(
+                'Chúc mừng bạn đã được nâng cấp tài khoản VIP đặc biệt 30 năm! Thời hạn VIP của bạn đến ngày ',
+                DATE_FORMAT(v_NgayKetThuc, '%d/%m/%Y %H:%i'),
+                '. Hãy tận hưởng tất cả các tính năng cao cấp!'
+            ),
+            'VIP',
+            0,
+            NOW(),
+            '/profile/vip'
+        );
+
+        COMMIT;
+
+        SELECT 'Đã cập nhật VIP 30 năm thành công cho người dùng ID = 1' AS Message,
+               DATE_FORMAT(v_NgayBatDau, '%d/%m/%Y %H:%i') AS NgayBatDau,
+               DATE_FORMAT(v_NgayKetThuc, '%d/%m/%Y %H:%i') AS NgayKetThuc;
+
+    ELSE
+        SELECT 'Người dùng ID = 1 không tồn tại!' AS Message;
+    END IF;
+END$$
+
+DELIMITER ;
+
+use dbTruyen
+-- Gọi thủ tục:
+CALL UpdateVIP30Nam();
+
+
+CREATE TABLE YeuCauThanhToan (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    NguoiDungID INT NOT NULL,
+    GoiVIPID INT NOT NULL,
+    SoTien DECIMAL(18,2) NOT NULL,
+    NoiDungChuyenKhoan VARCHAR(500) NOT NULL,
+    TrangThai ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
+    NgayTao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    NgayXuLy DATETIME NULL,
+    NguoiXuLy INT NULL,
+    GhiChu LONGTEXT NULL,
+    FOREIGN KEY (NguoiDungID) REFERENCES NguoiDung(ID) ON DELETE CASCADE,
+    FOREIGN KEY (GoiVIPID) REFERENCES GoiVIP(ID) ON DELETE CASCADE,
+    FOREIGN KEY (NguoiXuLy) REFERENCES NguoiDung(ID) ON DELETE SET NULL
+);
+
+
+
+-- Script để tạo bảng YeuThich cho chức năng yêu thích truyện
+-- Chạy script này để thêm bảng vào database
+
+USE DBTruyen;
+
+-- Bảng Yêu thích truyện
+CREATE TABLE IF NOT EXISTS YeuThich (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    NguoiDungID INT NOT NULL,
+    TruyenID INT NOT NULL,
+    NgayYeuThich DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY (NguoiDungID, TruyenID),
+    FOREIGN KEY (NguoiDungID) REFERENCES NguoiDung(ID) ON DELETE CASCADE,
+    FOREIGN KEY (TruyenID) REFERENCES Truyen(ID) ON DELETE NO ACTION
+);
+
+-- Tạo index để tối ưu truy vấn
+CREATE INDEX idx_yeuthich_nguoidung ON YeuThich(NguoiDungID);
+CREATE INDEX idx_yeuthich_truyen ON YeuThich(TruyenID);
+CREATE INDEX idx_yeuthich_ngay ON YeuThich(NgayYeuThich DESC);
+
+ 
