@@ -1,0 +1,30 @@
+# ===== Java =====
+*.class
+*.log
+
+# ===== Build output =====
+/build/
+/dist/
+/target/
+
+# ===== NetBeans =====
+/nbproject/private/
+/nbbuild/
+/nbdist/
+
+# ===== Packages =====
+*.jar
+*.war
+*.ear
+*.zip
+
+# ===== IDE =====
+.idea/
+.vscode/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Environment =====
+.env
