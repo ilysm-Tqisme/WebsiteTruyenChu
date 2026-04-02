@@ -1,6 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%--
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+--%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -439,6 +444,36 @@
                                 </li>
                             </ol>
                         </nav>
+                    </c:if>
+<c:if test="${totalPages > 1}">
+                        <div class="pagination-footer">
+                            <div class="pagination-left">
+                                <span class="pagination-info">Hiển thị ${pageSize} / ${totalStories} truyện</span>
+                            </div>
+                            <nav aria-label="Page navigation" class="pagination-nav">
+                                <ul class="pagination pagination-custom">
+                                    <!-- Page Numbers -->
+                                    <c:set var="startPage" value="${currentPage > 3 ? currentPage - 2 : 1}"/>
+                                    <c:set var="endPage" value="${startPage + 4 > totalPages ? totalPages : startPage + 4}"/>
+                                    <c:if test="${endPage - startPage < 4 && totalPages >= 5}">
+                                        <c:set var="startPage" value="${totalPages - 4}"/>
+                                    </c:if>
+
+                                    <c:forEach begin="${startPage}" end="${endPage}" var="i">
+                                        <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                            <a class="page-link" href="?page=${i}&pageSize=${pageSize}">${i}</a>
+                                        </li>
+                                    </c:forEach>
+
+                                    <!-- Next Button -->
+                                    <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                        <a class="page-link" href="?page=${currentPage + 1}&pageSize=${pageSize}" aria-label="Next">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
                     </c:if>
 
                     <!-- Messages -->
@@ -1079,6 +1114,7 @@
                                 </c:otherwise>
                             </c:choose>
                         </div>
+                        
                     </div>
                 </div>
             </div>

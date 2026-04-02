@@ -7,6 +7,11 @@ import java.sql.SQLException;
 public class DBConnection {
 
     private static final String URL = "jdbc:mysql://localhost:3306/DBTruyen?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8";
+    //private static final String URL = "jdbc:mysql://mysql:3306/DBTruyen?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8";
+    //private static final String USER = "root";
+    //private static final String PASSWORD = "25102005";
+    //private static final String URL = "jdbc:mysql://host.docker.internal:3307/DBTruyen?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8";
+    //private static final String URL = "jdbc:mysql://db:3306/DBTruyen?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8";
     private static final String USER = "root";
     private static final String PASSWORD = "25102005";
     private static final String DRIVER = "com.mysql.cj.jdbc.Driver";

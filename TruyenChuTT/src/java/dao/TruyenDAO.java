@@ -934,5 +934,60 @@ public class TruyenDAO {
         }
         return 0;
     }
+    // ✅ Đếm tổng số truyện (không bao gồm những truyện bị xóa)
+    public int demTongSoTruyen() {
+        String sql = "SELECT COUNT(*) FROM Truyen WHERE TrangThai != 'DA_XOA'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    // ✅ Lấy danh sách truyện với phân trang
+    public List<Truyen> layDanhSachTruyenPhanTrang(int page, int pageSize) {
+        List<Truyen> ds = new ArrayList<>();
+        
+        String sql = """
+            SELECT t.*, 
+                   tg.TenTacGia, 
+                   nd.HoTen AS nguoiTaoTen, 
+                   (
+                       SELECT COUNT(*) FROM Chuong c WHERE c.TruyenID = t.ID
+                   ) AS soLuongChuong
+            FROM Truyen t
+            JOIN TacGia tg ON t.TacGiaID = tg.ID
+            JOIN NguoiDung nd ON t.NguoiTaoID = nd.ID
+            WHERE t.TrangThai != 'DA_XOA'
+            ORDER BY t.NgayTao DESC
+            LIMIT ? OFFSET ?
+        """;
+
+        int offset = (page - 1) * pageSize;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, pageSize);
+            ps.setInt(2, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Truyen t = new Truyen();
+                    mapResultSetToTruyen(rs, t);
+                    ds.add(t);
+                }
+            }
+
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
     
 }

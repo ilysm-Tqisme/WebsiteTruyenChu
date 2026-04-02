@@ -1,3 +1,4 @@
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
@@ -41,7 +42,7 @@ import model.Truyen;
 public class StoryServlet extends HttpServlet {
 
     private static final String UPLOAD_DIR = "assets/images";
-    
+    private static final int DEFAULT_PAGE_SIZE = 10;
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -125,29 +126,57 @@ public class StoryServlet extends HttpServlet {
     }
 
     /** ✅ Hiển thị danh sách */
-private void hienDS(HttpServletRequest request, HttpServletResponse response, 
-                    TruyenDAO truyenDAO, TheLoaiDAO theLoaiDAO)
-        throws ServletException, IOException {
-
-    // ✅ Lấy thông báo thành công từ tham số
-    String success = request.getParameter("success");
-    if ("insert".equals(success)) {
-        request.setAttribute("successMessage", "Thêm truyện thành công!");
-    } else if ("update".equals(success)) {
-        request.setAttribute("successMessage", "Cập nhật truyện thành công!");
-    } else if ("delete".equals(success)) {
-        request.setAttribute("successMessage", "Xóa truyện thành công!");
+/** ✅ Hiển thị danh sách với phân trang */
+    private void hienDS(HttpServletRequest request, HttpServletResponse response, 
+                        TruyenDAO truyenDAO, TheLoaiDAO theLoaiDAO)
+            throws ServletException, IOException {
+        
+        int page = 1;
+        int pageSize = DEFAULT_PAGE_SIZE;
+        
+        try {
+            if (request.getParameter("page") != null) {
+                page = Integer.parseInt(request.getParameter("page"));
+                if (page < 1) page = 1;
+            }
+            
+            if (request.getParameter("pageSize") != null) {
+                pageSize = Integer.parseInt(request.getParameter("pageSize"));
+                if (pageSize < 1) pageSize = DEFAULT_PAGE_SIZE;
+                if (pageSize > 100) pageSize = 100; // Limit max page size
+            }
+        } catch (NumberFormatException e) {
+            // Use defaults if parsing fails
+        }
+        
+        // Get story list with pagination
+        List<Truyen> listStories = truyenDAO.layDanhSachTruyenPhanTrang(page, pageSize);
+        int totalStories = truyenDAO.demTongSoTruyen();
+        List<TheLoai> dsTheLoai = theLoaiDAO.layDanhSachTheLoai();
+        
+        // Calculate total pages
+        int totalPages = (int) Math.ceil((double) totalStories / pageSize);
+        
+        // Check for success messages
+        String success = request.getParameter("success");
+        if ("insert".equals(success)) {
+            request.setAttribute("successMessage", "Thêm truyện thành công!");
+        } else if ("update".equals(success)) {
+            request.setAttribute("successMessage", "Cập nhật truyện thành công!");
+        } else if ("delete".equals(success)) {
+            request.setAttribute("successMessage", "Xóa truyện thành công!");
+        }
+        
+        // Set attributes for JSP
+        request.setAttribute("listStories", listStories);
+        request.setAttribute("dsTheLoai", dsTheLoai);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("pageSize", pageSize);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalStories", totalStories);
+        
+        request.getRequestDispatcher("/Admin/QuanLyTruyen.jsp").forward(request, response);
     }
-
-    // Lấy dữ liệu
-    List<Truyen> ds = truyenDAO.layTatCaTruyen();
-    List<TheLoai> dsTheLoai = theLoaiDAO.layDanhSachTheLoai();
-    
-    request.setAttribute("listStories", ds);
-    request.setAttribute("dsTheLoai", dsTheLoai);
-    request.getRequestDispatcher("/Admin/QuanLyTruyen.jsp").forward(request, response);
-}
-
 
     /** ✅ Hiển thị form thêm */
     private void hienForm(HttpServletRequest request, HttpServletResponse response,

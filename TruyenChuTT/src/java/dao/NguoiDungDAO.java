@@ -120,7 +120,7 @@ public class NguoiDungDAO {
     
     // Kiểm tra sdt
     public boolean kiemTraSoDienThoaiDaTonTai(String soDienThoai, int userId) {
-        String sql = "SELECT COUNT(*) FROM nguoidung WHERE sodienthoai = ? AND id != ?";
+        String sql = "SELECT COUNT(*) FROM NguoiDung WHERE SoDienThoai = ? AND id != ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             

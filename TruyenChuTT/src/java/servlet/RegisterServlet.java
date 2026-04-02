@@ -110,6 +110,11 @@ public class RegisterServlet extends HttpServlet {
             return "Họ tên phải có ít nhất 2 ký tự!";
         }
 
+        // Bắt buộc nhập SĐT
+        if (soDienThoai == null || soDienThoai.trim().isEmpty()) {
+            return "Số điện thoại không được để trống!";
+        }
+
         // Validate số điện thoại
         if (soDienThoai != null && !soDienThoai.trim().isEmpty()) {
             if (!soDienThoai.matches("^0[0-9]{9}$")) {

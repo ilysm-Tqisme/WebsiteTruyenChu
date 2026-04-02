@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -284,6 +285,96 @@
             background: #e9ecef;
             color: #495057;
         }
+
+        /* Pagination Footer Styling */
+        .pagination-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 1.25rem;
+            background-color: white;
+            border-top: 1px solid #e5e7eb;
+            border-radius: 0 0 0.375rem 0.375rem;
+            margin-top: -1px;
+        }
+
+        .pagination-left {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .pagination-info {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .pagination-nav {
+            margin: 0;
+        }
+
+        /* Custom Pagination Styling */
+        .pagination-custom {
+            margin: 0;
+            gap: 6px;
+            display: flex;
+        }
+
+        .pagination-custom .page-link {
+            border: none;
+            margin: 0;
+            border-radius: 6px;
+            color: #1f2937;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .pagination-custom .page-item.active .page-link {
+            background-color: #5b3edb;
+            color: white;
+            box-shadow: 0 4px 12px rgba(91, 62, 219, 0.4);
+        }
+
+        .pagination-custom .page-link:hover:not(.disabled .page-link) {
+            background-color: #f3f4f6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .pagination-custom .page-item.active .page-link:hover {
+            background-color: #4c2ba3;
+            box-shadow: 0 6px 15px rgba(91, 62, 219, 0.5);
+        }
+
+        .pagination-custom .page-item.disabled .page-link {
+            color: #d1d5db;
+            background-color: #f9fafb;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .card-header.bg-primary {
+            background: linear-gradient(135deg, #5b3edb 0%, #4c2ba3 100%) !important;
+        }
+
+        .card-header.bg-primary .form-select {
+            border: 1px solid #e5e7eb;
+            padding: 0.375rem 2rem 0.375rem 0.75rem;
+        }
+
+        .card-header.bg-primary .form-select:focus {
+            border-color: #5b3edb;
+            box-shadow: 0 0 0 0.2rem rgba(91, 62, 219, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -376,7 +467,7 @@
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-book fa-2x me-3"></i>
                                     <div>
-                                        <h5 class="mb-0">${not empty listStories ? listStories.size() : 0}</h5>
+                                        <h5 class="mb-0">${totalStories}</h5>
                                         <small>Tổng truyện</small>
                                     </div>
                                 </div>
@@ -385,18 +476,10 @@
                         <div class="col-md-3">
                             <div class="stats-card">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-crown fa-2x me-3"></i>
+                                    <i class="fas fa-list fa-2x me-3"></i>
                                     <div>
-                                        <h5 class="mb-0">
-                                            <c:set var="vipCount" value="0"/>
-                                            <c:forEach var="story" items="${listStories}">
-                                                <c:if test="${story.chiDanhChoVIP}">
-                                                    <c:set var="vipCount" value="${vipCount + 1}"/>
-                                                </c:if>
-                                            </c:forEach>
-                                            ${vipCount}
-                                        </h5>
-                                        <small>Truyện VIP</small>
+                                        <h5 class="mb-0">${currentPage}</h5>
+                                        <small>Trang hiện tại</small>
                                     </div>
                                 </div>
                             </div>
@@ -406,16 +489,8 @@
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-fire fa-2x me-3"></i>
                                     <div>
-                                        <h5 class="mb-0">
-                                            <c:set var="hotCount" value="0"/>
-                                            <c:forEach var="story" items="${listStories}">
-                                                <c:if test="${story.noiBat}">
-                                                    <c:set var="hotCount" value="${hotCount + 1}"/>
-                                                </c:if>
-                                            </c:forEach>
-                                            ${hotCount}
-                                        </h5>
-                                        <small>Truyện nổi bật</small>
+                                        <h5 class="mb-0">${totalPages}</h5>
+                                        <small>Tổng trang</small>
                                     </div>
                                 </div>
                             </div>
@@ -423,18 +498,10 @@
                         <div class="col-md-3">
                             <div class="stats-card">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-star fa-2x me-3"></i>
+                                    <i class="fas fa-eye fa-2x me-3"></i>
                                     <div>
-                                        <h5 class="mb-0">
-                                            <c:set var="newCount" value="0"/>
-                                            <c:forEach var="story" items="${listStories}">
-                                                <c:if test="${story.truyenMoi}">
-                                                    <c:set var="newCount" value="${newCount + 1}"/>
-                                                </c:if>
-                                            </c:forEach>
-                                            ${newCount}
-                                        </h5>
-                                        <small>Truyện mới</small>
+                                        <h5 class="mb-0">${pageSize}</h5>
+                                        <small>Truyện/trang</small>
                                     </div>
                                 </div>
                             </div>
@@ -470,7 +537,7 @@
                                 </select>
                             </div>
                             
-                            <div class="col-md-2">
+                           <div class="col-md-2">
                                 <label class="form-label">Đặc tính</label>
                                 <div class="form-check mt-2">
                                     <input class="form-check-input" type="checkbox" name="vip" value="true" ${param.vip == 'true' ? 'checked' : ''}>
@@ -532,14 +599,25 @@
 
                     <!-- Stories Table -->
                     <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                <i class="fas fa-list me-2"></i>
-                                Danh sách truyện
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">
+                                    <i class="fas fa-list me-2"></i>
+                                    Danh sách truyện
                                 <c:if test="${not empty listStories}">
                                     <span class="badge bg-light text-dark ms-2">${listStories.size()} truyện</span>
                                 </c:if>
-                            </h5>
+                                </h5>
+                            </div>
+                            <div>
+                                <label for="pageSizeSelect" class="form-label mb-0 me-2" style="display: inline; color: white;">Số dòng:</label>
+                                <select id="pageSizeSelect" class="form-select d-inline-block" style="width: auto; background-color: white;" onchange="changePageSize(this.value)">
+                                    <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
+                                    <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
+                                    <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
+                                    <option value="50" ${pageSize == 50 ? 'selected' : ''}>50</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="card-body p-0">
                             <c:if test="${empty listStories}">
@@ -751,6 +829,37 @@
                                     </table>
                                 </div>
                             </c:if>
+                            <!-- Pagination Section (Footer) -->
+                    <c:if test="${totalPages > 1}">
+                        <div class="pagination-footer">
+                            <div class="pagination-left">
+                                <span class="pagination-info">Hiển thị ${pageSize} / ${totalStories} truyện</span>
+                            </div>
+                            <nav aria-label="Page navigation" class="pagination-nav">
+                                <ul class="pagination pagination-custom">
+                                    <!-- Page Numbers -->
+                                    <c:set var="startPage" value="${currentPage > 3 ? currentPage - 2 : 1}"/>
+                                    <c:set var="endPage" value="${startPage + 4 > totalPages ? totalPages : startPage + 4}"/>
+                                    <c:if test="${endPage - startPage < 4 && totalPages >= 5}">
+                                        <c:set var="startPage" value="${totalPages - 4}"/>
+                                    </c:if>
+
+                                    <c:forEach begin="${startPage}" end="${endPage}" var="i">
+                                        <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                            <a class="page-link" href="?page=${i}&pageSize=${pageSize}">${i}</a>
+                                        </li>
+                                    </c:forEach>
+
+                                    <!-- Next Button -->
+                                    <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                        <a class="page-link" href="?page=${currentPage + 1}&pageSize=${pageSize}" aria-label="Next">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </c:if>
                         </div>
                     </div>
                 </div>
@@ -842,33 +951,26 @@
     </div>
 
     <!-- Bootstrap JS -->
+                    
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function confirmDelete(id, name) {
-            document.getElementById('storyName').textContent = name;
-            document.getElementById('confirmDeleteBtn').href = 'stories?action=delete&id=' + id;
-            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            modal.show();
+        // Change page size
+        function changePageSize(pageSize) {
+            window.location.href = '?page=1&pageSize=' + pageSize;
         }
 
-        function updateView(id) {
-            if (confirm('Tăng lượt xem cho truyện này?')) {
-                window.location.href = 'stories?action=updateView&id=' + id;
-            }
-        }
-
-        function updateRating(id) {
-            document.getElementById('ratingStoryId').value = id;
-            const modal = new bootstrap.Modal(document.getElementById('ratingModal'));
-            modal.show();
-        }
-
-        // Form validation for rating
+        // Rating form validation
         document.getElementById('ratingForm').addEventListener('submit', function(e) {
-            const diem = parseFloat(this.diem.value);
-            const soLuong = parseInt(this.soLuong.value);
+            const diem = parseFloat(document.querySelector('input[name="diem"]').value);
+            const soLuong = parseInt(document.querySelector('input[name="soLuong"]').value);
             
-            if (diem < 1 || diem > 10) {
+            if (diem < 1.0 || diem > 10.0) {
                 e.preventDefault();
                 alert('Điểm đánh giá phải từ 1.0 đến 10.0');
                 return false;
@@ -893,11 +995,14 @@
         });
 
         // Search form enhancement
-        document.querySelector('input[name="keyword"]').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                this.closest('form').submit();
-            }
-        });
+        const keywordInput = document.querySelector('input[name="keyword"]');
+        if (keywordInput) {
+            keywordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    this.closest('form').submit();
+                }
+            });
+        }
     </script>
 </body>
 </html>
