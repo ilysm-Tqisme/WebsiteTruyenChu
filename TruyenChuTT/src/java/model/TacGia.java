@@ -36,7 +36,10 @@ public class TacGia {
     public void setSoLuongTruyen(int soLuongTruyen) { this.soLuongTruyen = soLuongTruyen; }
     
     public String getNgayTaoFormatted() {
+    //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    //return ngayTao != null ? ngayTao.format(formatter) : "";
+    if (ngayTao == null) return "";
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    return ngayTao != null ? ngayTao.format(formatter) : "";
+    return ngayTao.format(formatter);
     }
 }

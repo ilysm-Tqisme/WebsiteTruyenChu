@@ -148,9 +148,9 @@
                                 <tr>
                                     <td>${tl.id}</td>
                                     <td>${tl.tenTheLoai}</td>
-                                    <td>${tl.moTa}</td>
+                                    <td><c:out value="${tl.moTa}" /></td>
                                     <td><span class="badge" style="background-color: ${tl.mauSac};">${tl.mauSac}</span></td>
-                                    <td>${tl.ngayTao}</td>
+                                    <td>${tl.ngayTaoFormatted}</td>
                                     <td>
                                         <span class="badge bg-${tl.trangThai ? 'success' : 'secondary'}">
                                             ${tl.trangThai ? 'Hiển thị' : 'Ẩn'}

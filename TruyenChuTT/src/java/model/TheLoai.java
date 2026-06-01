@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class TheLoai {
     private int id;
@@ -46,6 +47,12 @@ public class TheLoai {
     public int getSoLuongTruyen() { return soLuongTruyen; }
     public void setSoLuongTruyen(int soLuongTruyen) { this.soLuongTruyen = soLuongTruyen; }
 
+    public String getNgayTaoFormatted() {
+        if (ngayTao == null) return "";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        return ngayTao.format(formatter);
+    }
+    
     @Override
     public String toString() {
         return "TheLoai{" +
